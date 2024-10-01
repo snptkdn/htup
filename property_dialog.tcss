@@ -1,0 +1,29 @@
+#project_tree {
+  width: 20%
+}
+
+#property_dialog {
+  border: tall $background;
+  margin: 1;
+  height: 20%;
+}
+
+#result {
+  border: tall $background;
+  margin: 1;
+}
+
+#title {
+  text-style: bold;
+}
+
+.result_label {
+  border: round $background;
+  text-style: bold;
+}
+
+.result_component {
+  margin-left: 2;
+  margin-right: 2;
+  height: auto;
+}

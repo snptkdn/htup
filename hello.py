@@ -1,13 +1,20 @@
+import os
+from rich.repr import Result
 from textual import on
 from textual.app import App, ComposeResult
 from textual.binding import Binding
-from textual.widgets import Label, Pretty, Static, Header, Footer, Button, Input, OptionList, RadioButton, RadioSet
+from textual.containers import Horizontal, Container, HorizontalScroll, ScrollableContainer, Vertical, VerticalScroll
+from textual.widgets import DirectoryTree, Label, Pretty, Static, Header, Footer, Button, Input, OptionList, RadioButton, RadioSet
 from typing import Optional
 
 from requester import http
+from widgets.project_tree import ProjectTree
+from widgets.property_dialog import PropertyDialog
+from widgets.result import Result
 
 class IntroductionApp(App):
     """Introduction to Textual."""
+    CSS_PATH = "property_dialog.tcss"
 
     selected_method: Optional[RadioButton] = None
 
@@ -16,23 +23,21 @@ class IntroductionApp(App):
     ]
 
     def compose(self) -> ComposeResult:
-        with RadioSet(id="method"):
-            yield RadioButton("GET", id="radio_get")
-            yield RadioButton("POST")
-            yield RadioButton("PUT")
-            yield RadioButton("DELETE")
-        with RadioSet(id="contentType"):
-            yield RadioButton("application/json")
-        yield Input(placeholder="URL", id="url")
-        yield Label("Status Code")
-        yield Pretty("-", id="status_code")
-        yield Label("Content Type")
-        yield Pretty("-", id="content_type")
-        yield Label("ResponseBody")
-        yield Pretty("Introduction", id="intro")
+        with HorizontalScroll():
+            yield ProjectTree(id="project_tree")
+            with Vertical():
+                yield PropertyDialog(id="property_dialog")
+                yield Input(placeholder="URL", id="url")
+                with Container():
+                    yield Result(id="result")
 
     def on_radio_set_changed(self, changed):
         self.selected_method = changed.pressed
+
+    def on_mount(self):
+        self.notify(os.path.abspath("~/.config/htup"))
+        if not os.path.exists("~/.config/htup"):
+            os.makedirs("~/.config/htup")
 
     def action_send(self) -> None:
         if self.selected_method is None:
