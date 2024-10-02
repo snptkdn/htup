@@ -12,6 +12,7 @@ from pathlib import Path
 from requester import http
 from variables import method
 from widgets.data_input import DataInput
+from widgets.new_endpoint_modal import NewEndpointModal
 from widgets.project_tree import ProjectTree
 from widgets.property_dialog import PropertyDialog
 from widgets.result import Result
@@ -24,10 +25,13 @@ class IntroductionApp(App):
 
     selected_method: Optional[RadioButton] = None
     selected_file: Optional[DirectoryTree.FileSelected] = None
+    selected_directory: Optional[DirectoryTree.DirectorySelected] = None
 
     BINDINGS = [
         Binding("ctrl+o", "send", "Send", priority=True),
         Binding("ctrl+s", "save", "Save", priority=True),
+        Binding("ctrl+n", "new_endpoint", "New Endpoint", priority=True),
+        Binding("ctrl+r", "reload_directory", "Reload Directory", priority=True),
     ]
 
     def compose(self) -> ComposeResult:
@@ -74,7 +78,7 @@ class IntroductionApp(App):
         self.query_one("#content_type").update(res.content_type)
         self.query_one("#intro").update(res.body)
 
-    def on_directory_tree_file_selected(self, selected: DirectoryTree.DirectorySelected):
+    def on_directory_tree_file_selected(self, selected: DirectoryTree.FileSelected):
         self.selected_file = selected
         schema = models.endpoint.load_endpoint(selected.path)
         self.query_one("#url").clear()
@@ -82,9 +86,17 @@ class IntroductionApp(App):
         self.query_one(f"#radio_{schema.method}").value = True
         self.query_one("#data_input").text = schema.data
 
+    def on_directory_tree_directory_selected(self, selected: DirectoryTree.DirectorySelected):
+        self.selected_directory = selected
 
+    def action_new_endpoint(self) -> None:
+        if self.selected_directory is None:
+            self.notify("ディレクトリを指定してください。")
+        else:
+            self.push_screen(NewEndpointModal(self.selected_directory.path, self.selected_directory.node))
 
-
+    def action_reload_directory(self) -> None:
+        self.query_one("#project_directory_tree").reload_node(self.selected_directory.node)
 
 if __name__ == "__main__":
     app = IntroductionApp()
