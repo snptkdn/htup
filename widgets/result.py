@@ -14,20 +14,8 @@ class Result(Static):
                 yield Label("Content Type")
                 yield Pretty("-", id="content_type", classes="result_label")
             with Container(classes="result_component"):
+                yield Label("Response Time")
+                yield Pretty("-", id="response_time", classes="result_label")
+            with Container(classes="result_component"):
                 yield Label("ResponseBody")
                 yield Pretty("Introduction", id="intro", classes="result_label")
-
-    def action_send(self) -> None:
-        if self.selected_method is None:
-            self.notify("メソッドが選択されていないため、自動でGETに設定しました。", severity="warning")
-            self.query_one("#radio_get").value = True
-            self.selected_method = self.query_one("#radio_get")
-            
-            
-        url = self.query_one("#url").value
-        res = http.send(url, self.selected_method.label._text[0])
-        if res.status_code == 999:
-            self.notify("リクエストが正常に完了しませんでした。",  severity="error")
-        self.query_one("#status_code").update(res.status_code)
-        self.query_one("#content_type").update(res.content_type)
-        self.query_one("#intro").update(res.body)

@@ -12,7 +12,8 @@ def format_result(res: requests.Response):
     data = HttpResult(
         content_type=content_type,
         status_code=res.status_code,
-        body=None
+        body=None,
+        time=res.elapsed.total_seconds()
     )
     
     if "application/json" in content_type:
@@ -26,7 +27,8 @@ def format_exception(e: Exception):
     return HttpResult(
         content_type="-",
         status_code=999,
-        body=e
+        body=e,
+        time=0
     )
 
 def get(url: str):

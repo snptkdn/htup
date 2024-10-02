@@ -43,6 +43,7 @@ class IntroductionApp(App):
                 with HorizontalScroll():
                     yield DataInput(classes="area")
                     yield Result(id="result", classes="area")
+                yield Footer()
 
     def on_radio_set_changed(self, changed):
         self.selected_method = changed.pressed
@@ -77,6 +78,7 @@ class IntroductionApp(App):
         self.query_one("#status_code").update(res.status_code)
         self.query_one("#content_type").update(res.content_type)
         self.query_one("#intro").update(res.body)
+        self.query_one("#response_time").update(res.time)
 
     def on_directory_tree_file_selected(self, selected: DirectoryTree.FileSelected):
         self.selected_file = selected
