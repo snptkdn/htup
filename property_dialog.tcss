@@ -17,6 +17,10 @@
   text-style: bold;
 }
 
+.area {
+  width: 50%;
+}
+
 .result_label {
   border: round $background;
   text-style: bold;

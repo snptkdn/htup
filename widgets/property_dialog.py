@@ -15,7 +15,7 @@ class PropertyDialog(Static):
         with Horizontal():
             with RadioSet(id="method"):
                 yield RadioButton("GET", id="radio_get")
-                yield RadioButton("POST")
+                yield RadioButton("POST", id="radio_post")
                 yield RadioButton("PUT")
                 yield RadioButton("DELETE")
             with RadioSet(id="contentType"):

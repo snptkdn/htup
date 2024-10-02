@@ -4,7 +4,7 @@ from textual.widgets import DirectoryTree, Static
 
 class ProjectTree(Static):
     def compose(self) -> ComposeResult:
-        yield DirectoryTree(path="~/.config/htup")
+        yield DirectoryTree(path="~/.config/htup", id="tree")
 
     def on_mount(self):
         self.query_one("#tree").show_root = False

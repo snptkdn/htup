@@ -4,10 +4,11 @@ from textual import on
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal, Container, HorizontalScroll, ScrollableContainer, Vertical, VerticalScroll
-from textual.widgets import DirectoryTree, Label, Pretty, Static, Header, Footer, Button, Input, OptionList, RadioButton, RadioSet
+from textual.widgets import DirectoryTree, Label, Pretty, Static, Header, Footer, Button, Input, OptionList, RadioButton, RadioSet, TextArea
 from typing import Optional
 
 from requester import http
+from widgets.data_input import DataInput
 from widgets.project_tree import ProjectTree
 from widgets.property_dialog import PropertyDialog
 from widgets.result import Result
@@ -30,8 +31,9 @@ class IntroductionApp(App):
             with Vertical():
                 yield PropertyDialog(id="property_dialog")
                 yield Input(placeholder="URL", id="url")
-                with Container():
-                    yield Result(id="result")
+                with HorizontalScroll():
+                    yield DataInput(classes="area")
+                    yield Result(id="result", classes="area")
 
     def on_radio_set_changed(self, changed):
         self.selected_method = changed.pressed
@@ -49,7 +51,8 @@ class IntroductionApp(App):
             
             
         url = self.query_one("#url").value
-        res = http.send(url, self.selected_method.label._text[0])
+        data: TextArea = self.query_one("#data_input")
+        res = http.send(url, self.selected_method.label._text[0], data.text)
         if res.status_code == 999:
             self.notify("リクエストが正常に完了しませんでした。",  severity="error")
         self.query_one("#status_code").update(res.status_code)
@@ -61,6 +64,7 @@ class IntroductionApp(App):
         self.query_one("#url").clear()
         self.query_one("#url").insert_text_at_cursor(schema.url)
         self.query_one(f"#radio_{schema.method}").value = True
+        self.query_one("#data_input").text = schema.data
 
 
 
