@@ -6,8 +6,10 @@ from textual.binding import Binding
 from textual.containers import Horizontal, Container, HorizontalScroll, ScrollableContainer, Vertical, VerticalScroll
 from textual.widgets import DirectoryTree, Label, Pretty, Static, Header, Footer, Button, Input, OptionList, RadioButton, RadioSet, TextArea
 from typing import Optional
+from pathlib import Path
 
 from requester import http
+from variables import method
 from widgets.data_input import DataInput
 from widgets.project_tree import ProjectTree
 from widgets.property_dialog import PropertyDialog
@@ -20,9 +22,11 @@ class IntroductionApp(App):
     CSS_PATH = "property_dialog.tcss"
 
     selected_method: Optional[RadioButton] = None
+    selected_file: Optional[DirectoryTree.FileSelected] = None
 
     BINDINGS = [
-        Binding("ctrl+o", "send", "Send", priority=True)
+        Binding("ctrl+o", "send", "Send", priority=True),
+        Binding("ctrl+s", "save", "Save", priority=True),
     ]
 
     def compose(self) -> ComposeResult:
@@ -43,6 +47,16 @@ class IntroductionApp(App):
         if not os.path.exists("~/.config/htup"):
             os.makedirs("~/.config/htup")
 
+    def action_save(self) -> None:
+        self.selected_file.path.write_text(
+            models.endpoint.Endpoint(
+                method = self.selected_method.label._text[0].lower(),
+                url = self.query_one("#url").value,
+                data = self.query_one("#data_input").text,
+            ).model_dump_json()
+        )
+        self.notify(f"{self.selected_file.path} is saved!")
+
     def action_send(self) -> None:
         if self.selected_method is None:
             self.notify("メソッドが選択されていないため、自動でGETに設定しました。", severity="warning")
@@ -60,6 +74,7 @@ class IntroductionApp(App):
         self.query_one("#intro").update(res.body)
 
     def on_directory_tree_file_selected(self, selected: DirectoryTree.DirectorySelected):
+        self.selected_file = selected
         schema = models.endpoint.load_endpoint(selected.path)
         self.query_one("#url").clear()
         self.query_one("#url").insert_text_at_cursor(schema.url)

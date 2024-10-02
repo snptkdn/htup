@@ -7,6 +7,7 @@ from variables.method import Method
 class Endpoint(pydantic.BaseModel):
     method: Method
     url: str
+    data: str
 
 def load_endpoint(path):
     with open(path) as f:

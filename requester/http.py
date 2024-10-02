@@ -1,11 +1,11 @@
 from models.httpResult import HttpResult
 import requests
 
-def send(url: str, method: str):
+def send(url: str, method: str, data: str):
     if method == "GET":
         return get(url)
     elif method == "POST":
-        return post(url)
+        return post(url, data)
 
 def format_result(res: requests.Response):
     content_type = res.headers['Content-Type']
@@ -36,9 +36,10 @@ def get(url: str):
         return format_exception(e)
     return format_result(res)
 
-def post(url: str):
+def post(url: str, data: str):
+    headers = {'Content-Type': 'application/json'}
     try:
-        res = requests.post(url=url)
+        res = requests.post(url=url, data=data, headers=headers)
     except Exception as e:
         return format_exception(e)
     return format_result(res)
