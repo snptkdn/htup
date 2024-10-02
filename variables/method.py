@@ -1,4 +1,4 @@
 from typing import Literal
 
 
-Method = Literal["GET", "POST", "PUT", "DELETE"]
+Method = Literal["get", "post", "put", "delete"]

@@ -12,6 +12,8 @@ from widgets.project_tree import ProjectTree
 from widgets.property_dialog import PropertyDialog
 from widgets.result import Result
 
+import models.endpoint
+
 class IntroductionApp(App):
     """Introduction to Textual."""
     CSS_PATH = "property_dialog.tcss"
@@ -53,6 +55,15 @@ class IntroductionApp(App):
         self.query_one("#status_code").update(res.status_code)
         self.query_one("#content_type").update(res.content_type)
         self.query_one("#intro").update(res.body)
+
+    def on_directory_tree_file_selected(self, selected: DirectoryTree.DirectorySelected):
+        schema = models.endpoint.load_endpoint(selected.path)
+        self.query_one("#url").clear()
+        self.query_one("#url").insert_text_at_cursor(schema.url)
+        self.query_one(f"#radio_{schema.method}").value = True
+
+
+
 
 
 if __name__ == "__main__":

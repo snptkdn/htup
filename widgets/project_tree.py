@@ -7,6 +7,7 @@ class ProjectTree(Static):
         yield DirectoryTree(path="~/.config/htup")
 
     def on_mount(self):
-        self.notify(os.path.abspath("~/.config/htup"))
-        if not os.path.exists("~/.config/htup"):
-            os.makedirs("~/.config/htup")
+        self.query_one("#tree").show_root = False
+        self.query_one("#tree").show_guides = False
+        self.query_one("#tree").guide_depth = 1
+
