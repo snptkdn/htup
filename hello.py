@@ -1,4 +1,5 @@
 import os
+from os.path import expanduser
 from rich.repr import Result
 from textual import on
 from textual.app import App, ComposeResult
@@ -43,9 +44,9 @@ class IntroductionApp(App):
         self.selected_method = changed.pressed
 
     def on_mount(self):
-        self.notify(os.path.abspath("~/.config/htup"))
-        if not os.path.exists("~/.config/htup"):
-            os.makedirs("~/.config/htup")
+        self.notify(os.path.abspath(expanduser("~/.config/htup")))
+        if not os.path.exists(expanduser("~/.config/htup")):
+            os.makedirs(expanduser("~/.config/htup"))
 
     def action_save(self) -> None:
         self.selected_file.path.write_text(
