@@ -1,0 +1,11 @@
+[package]
+name = "htup_tui"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+htup_core = { path = "../core" }
+anyhow = "1.0"
+tokio = { version = "1.0", features = ["full"] }
+ratatui = "0.26"
+crossterm = "0.27"

@@ -13,6 +13,8 @@ pub trait ProjectRepository: Send + Sync {
     fn list_projects(&self) -> Result<Vec<Project>>;
     /// Lists all request IDs (names) in a project.
     fn list_requests(&self, project: &Project) -> Result<Vec<String>>;
+    /// Creates a new project (directory).
+    fn create_project(&self, name: &str) -> Result<()>;
 }
 
 /// Repository for loading and saving Requests.

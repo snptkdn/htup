@@ -60,4 +60,13 @@ impl ProjectRepository for FsProjectRepository {
         requests.sort();
         Ok(requests)
     }
+
+    fn create_project(&self, name: &str) -> Result<()> {
+        let path = self.root.join(name);
+        if path.exists() {
+            anyhow::bail!("Project already exists: {}", name);
+        }
+        fs::create_dir_all(&path).with_context(|| format!("Failed to create project directory: {:?}", path))?;
+        Ok(())
+    }
 }
