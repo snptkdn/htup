@@ -186,14 +186,42 @@ impl App {
             }
             AppMode::CreatingRequest => {
                 let name = self.state.input_buffer.clone();
+                 if !name.is_empty() {
+                     // Step 1 Complete: Move to Step 2 (Method)
+                     if let Some(mut pending) = self.state.pending_request.as_mut() {
+                         pending.name = name;
+                     }
+                     self.state.mode = AppMode::CreatingRequestMethod;
+                     self.state.selection_index = 0;
+                 }
+            }
+            AppMode::CreatingRequestMethod => {
+                // Step 2 Complete: Move to Step 3 (Body)
+                let methods = vec!["GET", "POST", "PUT", "DELETE", "PATCH"];
+                if let Some(mut pending) = self.state.pending_request.as_mut() {
+                    if let Some(m) = methods.get(self.state.selection_index) {
+                         pending.method = m.to_string();
+                         self.state.mode = AppMode::CreatingRequestBody;
+                         self.state.selection_index = 0;
+                    }
+                }
+            }
+            AppMode::CreatingRequestBody => {
+                // Step 3 Complete: Finalize
+                let types = vec!["Empty", "JSON"];
                  if let Some(project) = self.state.selected_project().cloned() {
-                    if !name.is_empty() {
-                        self.create_request_usecase.execute(&project, &name)?;
+                    if let Some(pending) = self.state.pending_request.take() {
+                         let body_type = types.get(self.state.selection_index).unwrap_or(&"Empty");
+                        
+                        // Execute creation
+                        self.create_request_usecase.execute(&project, &pending.name, &pending.method, body_type)?;
+                        
                         self.state.mode = AppMode::Normal;
                         self.state.input_buffer.clear();
                         self.refresh_requests()?;
-                        self.state.status_message = Some(format!("Request '{}' created in '{}'", name, project.name));
-                        // Automatically open editor after creation
+                        self.state.status_message = Some(format!("Request '{}' created in '{}'", pending.name, project.name));
+                        
+                        // Automatically open editor
                         self.on_edit()?;
                     }
                  }
@@ -205,18 +233,6 @@ impl App {
 
     pub fn on_edit(&mut self) -> Result<()> {
         if let (Some(project), Some(req_id)) = (self.state.selected_project(), self.state.selected_request_id()) {
-             // We need to suspend the terminal before opening the editor?
-             // Actually ratatui/crossterm might need cleanup.
-             // But since we are using SystemCommandEditor which uses std::process::Command with inherited stdio/stdout...
-             // We might need to temporarily leave raw mode in main.rs, not here.
-             // But the UseCase just calls the command.
-             // Let's rely on main.rs handling the logic or do it here if we pass a callback?
-             // For simplicity, the UseCase runs the command.
-             // If the command is interactive (vim), it needs terminal control.
-             // So we should probably handle this in main.rs by checking a flag or return value?
-             // OR, we can just run it. But running vim inside raw mode might be weird.
-             // Ideally we signal main loop to suspend.
-             // For now, let's just call the usecase and see if we can handle the terminal in main.rs logic via `AppMode`.
              self.edit_request_usecase.execute(project, req_id)?;
              self.state.status_message = Some(format!("Edited {}", req_id));
         }
@@ -228,9 +244,10 @@ impl App {
             AppMode::ViewingResponse => {
                 self.state.mode = AppMode::Normal;
             }
-            AppMode::CreatingProject | AppMode::CreatingRequest => {
+            AppMode::CreatingProject | AppMode::CreatingRequest | AppMode::CreatingRequestMethod | AppMode::CreatingRequestBody => {
                 self.state.mode = AppMode::Normal;
                 self.state.input_buffer.clear();
+                self.state.pending_request = None;
             }
             _ => {
                 // Maybe quit?
@@ -255,6 +272,40 @@ impl App {
             _ => {}
         }
     }
+    
+    pub fn on_up(&mut self) {
+        match self.state.mode {
+            AppMode::CreatingRequestMethod => {
+                 if self.state.selection_index > 0 {
+                     self.state.selection_index -= 1;
+                 }
+            }
+             AppMode::CreatingRequestBody => {
+                 if self.state.selection_index > 0 {
+                     self.state.selection_index -= 1;
+                 }
+            }
+            _ => {}
+        }
+    }
+
+    pub fn on_down(&mut self) {
+        match self.state.mode {
+             AppMode::CreatingRequestMethod => {
+                let max = 5; // count of methods
+                if self.state.selection_index < max - 1 {
+                    self.state.selection_index += 1;
+                }
+            }
+            AppMode::CreatingRequestBody => {
+                let max = 2; // count of types
+                if self.state.selection_index < max - 1 {
+                    self.state.selection_index += 1;
+                }
+            }
+            _ => {}
+        }
+    }
 
     pub fn start_create_project(&mut self) {
         self.state.mode = AppMode::CreatingProject;
@@ -263,8 +314,14 @@ impl App {
 
     pub fn start_create_request(&mut self) {
         if self.state.selected_project().is_some() {
-            self.state.mode = AppMode::CreatingRequest;
+            self.state.mode = AppMode::CreatingRequest; // Start Step 1
             self.state.input_buffer.clear();
+            // Init pending request
+            self.state.pending_request = Some(crate::state::PendingRequest {
+                name: String::new(),
+                method: String::new(),
+                body_type: String::new(),
+            });
         } else {
             self.state.status_message = Some("No project selected".to_string());
         }

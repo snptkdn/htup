@@ -87,12 +87,14 @@ async fn run_app<B: ratatui::backend::Backend + std::io::Write>(terminal: &mut T
             if let Event::Key(key) = event::read()? {
                 match app.state.mode {
                     // Input Mode handling
-                    state::AppMode::CreatingProject | state::AppMode::CreatingRequest => {
+                    state::AppMode::CreatingProject | state::AppMode::CreatingRequest | state::AppMode::CreatingRequestMethod | state::AppMode::CreatingRequestBody => {
                         match key.code {
                             KeyCode::Enter => app.on_enter().await?,
                             KeyCode::Esc => app.on_esc(),
                             KeyCode::Backspace => app.on_backspace(),
                             KeyCode::Char(c) => app.on_char(c),
+                            KeyCode::Up => app.on_up(),
+                            KeyCode::Down => app.on_down(),
                             _ => {}
                         }
                     }

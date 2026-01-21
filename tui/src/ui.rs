@@ -33,7 +33,7 @@ pub fn draw(f: &mut Frame, state: &mut AppState) {
 
     // Draw Popups overlay
     if match state.mode {
-        AppMode::CreatingProject | AppMode::CreatingRequest => true,
+        AppMode::CreatingProject | AppMode::CreatingRequest | AppMode::CreatingRequestMethod | AppMode::CreatingRequestBody => true,
         _ => false,
     } {
         draw_input_popup(f, state, f.size());
@@ -123,19 +123,49 @@ fn draw_status_bar(f: &mut Frame, state: &AppState, area: Rect) {
 fn draw_input_popup(f: &mut Frame, state: &AppState, area: Rect) {
     let title = match state.mode {
         AppMode::CreatingProject => "Create New Project",
-        AppMode::CreatingRequest => "Create New Request",
+        AppMode::CreatingRequest => "Request Name",
+        AppMode::CreatingRequestMethod => "Select Method",
+        AppMode::CreatingRequestBody => "Select Body Type",
         _ => "",
     };
 
     let block = Block::default().borders(Borders::ALL).title(title);
-    let area = centered_rect(60, 20, area);
+    let area = centered_rect(60, 40, area); // Increased height for lists
     f.render_widget(ratatui::widgets::Clear, area); // Clear background
     f.render_widget(block.clone(), area);
 
-    let input_area = block.inner(area);
-    let input = Paragraph::new(state.input_buffer.as_str())
-        .style(Style::default().fg(Color::Yellow));
-    f.render_widget(input, input_area);
+    let inner_area = block.inner(area);
+
+    match state.mode {
+        AppMode::CreatingProject | AppMode::CreatingRequest => {
+             let input = Paragraph::new(state.input_buffer.as_str())
+                .style(Style::default().fg(Color::Yellow));
+            f.render_widget(input, inner_area);
+        }
+        AppMode::CreatingRequestMethod => {
+            let methods = vec!["GET", "POST", "PUT", "DELETE", "PATCH"];
+            let items: Vec<ListItem> = methods.iter().map(|m| ListItem::new(*m)).collect();
+            let list = List::new(items)
+                .highlight_style(Style::default().add_modifier(Modifier::BOLD).fg(Color::Yellow))
+                .highlight_symbol("> ");
+            
+            let mut list_state = ListState::default();
+            list_state.select(Some(state.selection_index));
+            f.render_stateful_widget(list, inner_area, &mut list_state);
+        }
+        AppMode::CreatingRequestBody => {
+            let types = vec!["Empty", "JSON"];
+            let items: Vec<ListItem> = types.iter().map(|t| ListItem::new(*t)).collect();
+            let list = List::new(items)
+                .highlight_style(Style::default().add_modifier(Modifier::BOLD).fg(Color::Yellow))
+                .highlight_symbol("> ");
+            
+            let mut list_state = ListState::default();
+            list_state.select(Some(state.selection_index));
+            f.render_stateful_widget(list, inner_area, &mut list_state);
+        }
+        _ => {}
+    }
 }
 
 /// Helper to center a rect

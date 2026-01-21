@@ -5,7 +5,9 @@ pub enum AppMode {
     Normal,
     ViewingResponse,
     CreatingProject,
-    CreatingRequest,
+    CreatingRequest, // Step 1: Name
+    CreatingRequestMethod, // Step 2: Method
+    CreatingRequestBody, // Step 3: Body Type
     Help,
 }
 
@@ -13,6 +15,13 @@ pub enum AppMode {
 pub enum FocusPane {
     Projects,
     Requests,
+}
+
+#[derive(Debug, Clone)]
+pub struct PendingRequest {
+    pub name: String,
+    pub method: String,
+    pub body_type: String,
 }
 
 pub struct AppState {
@@ -25,6 +34,10 @@ pub struct AppState {
     pub current_response: Option<Response>,
     pub status_message: Option<String>,
     pub input_buffer: String,
+    
+    // For Wizards
+    pub pending_request: Option<PendingRequest>,
+    pub selection_index: usize, // For Method/Body lists
 }
 
 impl AppState {
@@ -39,6 +52,8 @@ impl AppState {
             current_response: None,
             status_message: None,
             input_buffer: String::new(),
+            pending_request: None,
+            selection_index: 0,
         }
     }
 
