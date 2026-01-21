@@ -132,7 +132,7 @@ impl App {
 
     pub async fn on_enter(&mut self) -> Result<()> {
         match self.state.mode {
-            AppMode::Normal => {
+            AppMode::Normal | AppMode::ViewingResponse => {
                 match self.state.focused_pane {
                     FocusPane::Projects => {
                          // Enter on project list switches focus to requests (common pattern)
@@ -197,9 +197,6 @@ impl App {
                         self.on_edit()?;
                     }
                  }
-            }
-            AppMode::ViewingResponse => {
-                // Return to normal? Or maybe toggle body/headers
             }
             _ => {}
         }
